@@ -1,0 +1,178 @@
+---
+title: "ANA 515 Assignment 4 Data Analytics Project"
+author: "Saif Hossain"
+date: "2022-10-12"
+output: 
+    html_document:
+      code_folding: "show"
+      theme:
+        bootswatch: "darkly"
+    pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include = FALSE}
+#The include = FALSE function hides both the code and output in my output document
+
+#You need to install these packages first to be able to use the functions within them. You can install them from the Tools tab or write a new code chunk: install.packages("package_name"). 
+library(tidyverse)
+library(knitr)
+library(dplyr)
+library(ggfortify)
+library(stats)
+```
+
+
+
+
+## 1 Business Problem
+
+A mall has collected information about its customers and wants to know which gender and at what income level they have the greatest spending habit which they classified as spending score. The score ranges from 1 - 100. That way a greater customer service can be provided to those VIP customers.
+
+
+### 2 Dataset retreival
+
+The data set was collected from Kaggle as a csv file, since this is a relatively small data set it was stored in my personal machine and below is a an example of what the data set looks like:
+
+```{r mall, results= TRUE}
+# 3
+
+# Importing the data set and saving it as a variable from my personal machine.
+
+mall_data <- read.csv("C:/Users/saiii/OneDrive/Desktop/McDaniel College/ANA 515/Week 8/Mall_Customers.csv", header=TRUE, stringsAsFactors=FALSE) 
+
+head(mall_data)
+```
+
+
+
+```{r results = TRUE}
+
+#4
+
+# Getting columns of my dataframe
+
+colnames(mall_data)
+
+# Characteristics of the data. And Inline code below.
+
+dimensions <- dim(mall_data)
+
+#Summary of the dataset
+
+summary(mall_data)
+
+  
+```
+
+
+This dataframe has `r dimensions[1]` rows and `r dimensions[2]` columns. The names of the columns and a brief description of each are in the table below:
+
+
+```{r results = TRUE}
+
+#5
+
+#Cleaning the column name
+mall_data <- rename(mall_data, Sex = 'Genre')
+mall_data <- rename(mall_data, Spending_Score_1_To_100 = 'Spending.Score..1.100.')
+
+#Dropping columns such as customer id because it has no value to analysis and sex for discrimination purposes.
+
+mall_data_2 <- select(mall_data,
+                      Age,
+                      Annual.Income..k..,
+                      Spending_Score_1_To_100)
+
+head(mall_data_2)
+
+#Making sure there is no missing values in my data set.
+sum(is.na(mall_data_2))
+
+```
+
+
+
+```{r results = FALSE}
+
+#6
+
+# Bringing the wss plot under function
+
+wssplot <- function(data, nc=15, seed=1234){
+  wss <- (nrow(data)-1)*sum(apply(data,2,var))
+  for (i in 2:nc){
+    set.seed(seed)
+    wss[i] <- sum(kmeans(data, centers=i)$withinss)}
+  plot(1:nc, wss, type="b", xlab="Number of Clusters",
+       ylab="Within groups sum of squares")
+  
+}
+
+
+  
+```
+
+### Modeling the data
+
+K-Means cluster was chosen for modeling to find groups who has the highest spending score and group those variables of data.
+
+
+```{r results = TRUE}
+
+# 6 & 7
+
+# wss plot to choose the maximum number of clusters, using the elbow method 4 is a good number of clusters.
+
+wssplot(mall_data_2) 
+
+
+# K-Means cluster
+
+
+KM <- kmeans(mall_data_2, 4)
+
+
+
+
+  
+```
+
+
+
+
+```{r results = TRUE}
+
+# 8 & 9
+
+#Clustering the plot with values of 4 because of elbow shape.
+
+
+autoplot(KM, mall_data_2,frame = TRUE)
+
+
+#Cluster centers describes the age and annual income for maximum spending score.
+
+KM$centers
+
+  
+```
+
+
+### Summary
+
+Average Spending for cluster 1 is 42.63 out of 100 when average age is 44.59 and income is 48.71 K
+
+Average Spending for cluster 2 is 74.25 out of 100 when average age is 24.83 and income is 28.71 K
+
+Average Spending for cluster 3 is 82.12 out of 100 when average age is 32.69 and income is 86.53 K
+
+Average Spending for cluster 4 is 18.63 out of 100 when average age is 40.39 and income is 87.00 K
+
+
+# Result
+
+The mall should target people of age 32, with an income of 86.54 K for maximum profit.
